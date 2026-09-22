@@ -6,6 +6,8 @@ runtimes behind one resource-aware OpenAI-compatible endpoint.
 > 中文简介：这个仓库的重点不是重复介绍 SGLang，而是在 SGLang 之上实现“多个模型、
 > 多组 GPU、按实时资源状态选模型”的运行时路由能力。
 
+![SGLang Multi-Model Router architecture](assets/multi_model_router_overview.png)
+
 ## Why This Repository Exists
 
 Production inference clusters often need to run model pools with different
