@@ -1,3 +1,61 @@
+# SGLang Multi-Model Router
+
+An independent SGLang-derived runtime experiment for serving multiple model
+types behind one resource-aware OpenAI-compatible endpoint.
+
+> 中文简介：这是一个基于 SGLang 的独立多模型运行时实验。它让多个模型实例各自运行，
+> 再由资源感知的 `ModelResolver` 根据实时负载选择适合处理请求的模型。
+
+## Project Origin and Upstream Relationship
+
+This repository starts from an SGLang source snapshot based on
+[sgl-project/sglang](https://github.com/sgl-project/sglang) at
+[`b63f841`](https://github.com/sgl-project/sglang/commit/b63f8416b3b73bafdec029005c5db36bad207b44).
+It keeps the upstream [Apache-2.0 license](LICENSE), attribution, and source
+tree, but is an **independent GitHub repository**, not a GitHub fork. Its Git
+history intentionally begins with this snapshot because the local source clone
+was shallow.
+
+Consequently, this repository does not automatically sync from upstream and
+does not submit code to upstream. Future upstream updates should be brought in
+deliberately, with the routing changes reviewed and tested against the selected
+upstream revision.
+
+## What This Project Adds
+
+- **Static multi-model supervisor**: reads one JSON configuration and starts
+  isolated SGLang runtime replicas. Each `gpu_group` is a separate runtime;
+  models are not mixed inside SRT's native data-parallel controller.
+- **Model-aware GPU placement**: validates TP/PP group size and rejects GPU
+  overlap by default. Explicit device sharing remains available only for
+  development experiments.
+- **Resource-aware `ModelResolver`**: resolves a virtual public model name to
+  a concrete model from its candidate pool using live `/v1/loads` data,
+  including health, freshness, KV-cache pressure, free token capacity, and
+  waiting/running request counts.
+- **Public routing edge**: proxies `/v1/chat/completions` and
+  `/v1/completions` to the existing SGLang router, and returns
+  `X-SGLang-Requested-Model` and `X-SGLang-Resolved-Model` response headers.
+- **Operational visibility**: exposes `/v1/models`, `/health`, `/ready`,
+  `/health/verbose`, and `/v1/runtime-loads` for model discovery, readiness,
+  and per-runtime state.
+- **Examples and tests**: includes static and resource-aware configuration
+  examples, parser/launch/router/HTTP tests, and a detailed MVP plan in
+  [MULTI_MODEL_RUNTIME_MVP_PLAN.md](MULTI_MODEL_RUNTIME_MVP_PLAN.md).
+
+See [examples/multi_model_router/README.md](examples/multi_model_router/README.md)
+for configuration and request examples.
+
+## Current Scope
+
+This is an experimental orchestration layer, not a complete multi-model
+cluster manager. It currently routes chat-completions and completions traffic,
+uses SGLang runtime load metrics rather than NVML physical-GPU telemetry, and
+does not yet implement runtime loading, sleeping, GPU reallocation, or
+automatic upstream synchronization.
+
+---
+
 <div align="center" id="sglangtop">
 <img src="https://raw.githubusercontent.com/sgl-project/sglang/main/assets/logo.png" alt="logo" width="400" margin="10px"></img>
 
